@@ -3,10 +3,12 @@ import psycopg2
 import pandas as pd
 from easyocr import Reader
 
+# Function to extract information from the OCR results
 def extract_information(image, ocr_reader: Reader):
-    results = ocr_reader.readtext(image, detail = 0, paragraph=False)
+    results = ocr_reader.readtext(image, detail=0, paragraph=False)
     return (results, get_data(results))
 
+# Function to organize extracted data
 def get_data(res):
     data = {
         "website": [],
@@ -21,12 +23,13 @@ def get_data(res):
         "pin_code": [],
     }
 
+    # Loop through OCR results to categorize data
     for ind, i in enumerate(res):
         # To get WEBSITE_URL
         if "www." in i.lower():
             data["website"].append(i)
         elif "WWW" in i:
-            data["website"] =  "www." + res[5]
+            data["website"] = "www." + res[5]
 
         # To get EMAIL ID
         elif "@" in i:
@@ -84,19 +87,8 @@ def get_data(res):
 
     return data
 
+# Function to connect to a PostgreSQL database
 def connect_to_postgre(host, port, database, user, password):
-    """
-        Connects to a PostgreSQL database running on GCP.
-        Args:
-            host: The host of the PostgreSQL database instance.
-            port: The port of the PostgreSQL database instance.
-            database: The name of the PostgreSQL database.
-            username: The username to use to connect to the PostgreSQL database.
-            password: The password to use to connect to the PostgreSQL database.
-        Returns:
-            A psycopg2 connection object.
-    """
-
     return psycopg2.connect(
         host=host,
         port=port,
@@ -105,6 +97,7 @@ def connect_to_postgre(host, port, database, user, password):
         password=password
     )
 
+# Function to create a table in the database
 def create_table(connection):
     cursor = connection.cursor()
     create_table_query = """
@@ -127,6 +120,7 @@ def create_table(connection):
     connection.commit()
     cursor.close()
 
+# Function to insert data into the database
 def insert_into_database(info_dict, image_data, connection):
     cursor = connection.cursor()
     insert_query = """
@@ -152,6 +146,7 @@ def insert_into_database(info_dict, image_data, connection):
     connection.commit()
     cursor.close()
 
+# Function to fetch data from the database
 def fetch_data_from_database(connection):
     cursor = connection.cursor()
     fetch_query = """
@@ -164,6 +159,7 @@ def fetch_data_from_database(connection):
     cursor.close()
     return df
 
+# Function to fetch an entry by its ID from the database
 def fetch_entry_by_id(entry_id, connection):
     cursor = connection.cursor()
     fetch_query = """
@@ -176,6 +172,7 @@ def fetch_entry_by_id(entry_id, connection):
     cursor.close()
     return entry_dict
 
+# Function to update an entry in the database
 def update_entry(entry_id, info_dict, connection):
     cursor = connection.cursor()
     update_query = """
@@ -209,6 +206,7 @@ def update_entry(entry_id, info_dict, connection):
     connection.commit()
     cursor.close()
 
+# Function to delete an entry from the database
 def delete_entry(entry_id, connection):
     cursor = connection.cursor()
     delete_query = """

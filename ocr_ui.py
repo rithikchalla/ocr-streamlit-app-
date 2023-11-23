@@ -1,53 +1,59 @@
+# Import necessary libraries
 import streamlit as st
 import ocr_api
 import easyocr
 import io
 from PIL import Image
 
-
 # Page functions
+
+# Home Page
 def home_page():
     st.header("Business Card Information Extractor")
+    # Introduction to the application
     st.write("""Welcome to the Business Card Information Extractor app! 
-             This Streamlit application empowers users to effortlessly extract 
-             essential details from uploaded business card images using the 
-             powerful easyOCR library. The extracted information includes key 
-             elements such as the company name, cardholder name, designation, 
-             mobile number, email address, website URL, area, city, state, and pin code.
-             """)
+                 This Streamlit application empowers users to effortlessly extract 
+                 essential details from uploaded business card images using the 
+                 powerful easyOCR library. The extracted information includes key 
+                 elements such as the company name, cardholder name, designation, 
+                 mobile number, email address, website URL, area, city, state, and pin code.
+                 """)
+    # Explanation of how the application works
     st.markdown("""
         <h3>How It Works</h3>
         <ol>
-                <li><b>Upload Your Business Card Image:</b> Simply use the file uploader 
+            <li><b>Upload Your Business Card Image:</b> Simply use the file uploader 
                 in the sidebar to select and upload the image of the business 
                 card you'd like to extract information from.</li>
-                <li><b>Extracted Information Display:</b> Once the image is uploaded, the 
+            <li><b>Extracted Information Display:</b> Once the image is uploaded, the 
                 application utilizes easyOCR to process the image and extract relevant 
                 details. The extracted information is then presented in a clean and 
                 organized manner in the application's graphical user interface (GUI).</li>
-                <li><b>Database Integration:</b>The application goes a step further by 
+            <li><b>Database Integration:</b>The application goes a step further by 
                 allowing users to save the extracted information into a database. 
                 The database, powered by PostgreSQL, stores multiple entries, 
                 each associated with its respective business card image and extracted 
                 information.</li>
-                <li><b>Database Operations:</b>Users have the flexibility to interact 
+            <li><b>Database Operations:</b>Users have the flexibility to interact 
                 with the stored data through the Streamlit UI. You can read the data, 
                 update existing entries, and delete entries effortlessly, providing a 
                 seamless experience.</li>
         </ol>
-        
     """,
     unsafe_allow_html=True)
 
+# Upload Data Page
 def upload_data_page():
     st.header("Upload Images")
-    uploaded_file = st.file_uploader("Choose a business card image", 
-                                     type=["jpg", "jpeg", "png"])
-    
+    # File uploader for business card image
+    uploaded_file = st.file_uploader("Choose a business card image", type=["jpg", "jpeg", "png"])
+
     col1, col2 = st.columns(2)
     
     if uploaded_file is not None:
+        # Display the uploaded image
         col1.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+        # Extract information from the uploaded image using OCR
         response = ocr_api.extract_information(uploaded_file.getvalue(), 
                                                st.session_state.ocr_reader_object)
         # Allow users to edit the extracted values
@@ -63,7 +69,7 @@ def upload_data_page():
                 ocr_api.insert_into_database(edited_info, uploaded_file.read(), st.session_state.conn)
             col2.success("Information successfully saved to database")
 
-
+# Saved Information Page
 def saved_info_page():
     st.header('Retrieve Existing Data')
 
@@ -74,6 +80,7 @@ def saved_info_page():
     # Display the data in a table
     st.table(data_to_be_displayed)
 
+    # Create tabs for updating and deleting data
     tab1, tab2 = st.tabs(['Update Data', 'Delete Data'])
 
     with tab1:
@@ -120,13 +127,13 @@ def saved_info_page():
             st.success("Successfully Deleted!")
             st.rerun()
 
-    
-
 # Main function
 def main():
+    # Check if OCR reader object is not in session state, create one
     if 'ocr_reader_object' not in st.session_state:
         st.session_state.ocr_reader_object = easyocr.Reader(['en'])
 
+    # Check if database connection is not in session state, create one
     if 'conn' not in st.session_state:
         st.session_state.conn = ocr_api.connect_to_postgre(st.secrets['host'], 
                                                            st.secrets['port'],
@@ -135,10 +142,11 @@ def main():
                                                            st.secrets['password'])
         ocr_api.create_table(st.session_state.conn)
 
-    st.title('BizCardX Extract text from Buisness cards')
+    # Set the title for the Streamlit app
+    st.title('BizCardX Extract text from Business cards')
     st.sidebar.title("Navigation Menu")
 
-    # Create custom styled buttons
+    # Create custom styled buttons in the sidebar
     selection = st.sidebar.selectbox(
         "Select an option from the below options",
         ("Home", "Upload Documents", "Retrieve Data")
