@@ -22,6 +22,7 @@ BizCardX is a Streamlit web application that empowers users to effortlessly extr
    ```bash
    pip install -r requirements.txt
 3. **Create secrets.toml file inside .streamlit folder**
+   ```
     Create a directory .streamlit and create a file to save secrets secrets.toml
 3. **Run the Application**
    ```bash
